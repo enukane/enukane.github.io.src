@@ -1,0 +1,173 @@
+---
+layout: post
+title: "2015-01-28 embulk-plugin-input-pcapng-files書いた"
+date: 2015-01-29 00:03:51 +0900
+comments: true
+categories: 
+- tech
+---
+
+### 追記 (2015/01/29 20:03)
+
+ver 0.0.2切った. ファイルのソート周りはまだ直してない.
+
+https://rubygems.org/gems/embulk-plugin-input-pcapng-files
+
+### 追記 (2015/01/29 19:49)
+
+手元で動作確認してたらいつの間にか次のバージョンのembulkがリリースされてた.
+おかしいぞ...さっきのpullreqで入れてもらったワークアラウンド試し始めたばっかりなのに...(もう不要になった)
+
+https://twitter.com/frsyuki/status/560750747608817665
+
+### 追記 (2015/01/29 19:38)
+frsyuki先生から後ろ方のてきとーなメモに対する, 大変丁寧なコメントを頂けた. なるほどなるほど.
+
+https://gist.github.com/frsyuki/dcfb30690fd453542f45
+
+ついでにいろいろと手直しして頂いて感謝感謝
+
+- https://github.com/enukane/embulk-plugin-input-pcapng-files/pull/1
+- https://github.com/enukane/embulk-plugin-input-pcapng-files/pull/2
+
+##はじめに
+
+前々からやっているコミケその他イベントでの無線LAN解析(※)に良い感じに使えそうなので
+pcapngファイルからの入力を取れる "embulk-plugin-input-pcapng-files" なるプラグインを書いてみました.
+
+- [enukane/embulk-plugin-input-pcapng-files](https://github.com/enukane/embulk-plugin-input-pcapng-files)
+- [rubygems - embulk-plugin-input-pcapng-files](https://rubygems.org/gems/embulk-plugin-input-pcapng-files)
+
+- ※
+  - http://www.slideshare.net/enukane/comiket-space-29723016
+  - http://www.slideshare.net/enukane/comiket-space-c86
+  - http://www.slideshare.net/enukane/c87-wifi-comiket-space
+
+中身はまんまtshark呼んでるだけですが, 抽出条件をコンフィグに書けたり出力先を柔軟に変更可能だったりと
+embulkのよさげなところを活かせそうなのが良い感じです.
+
+
+今までは集めた多量のpcapngファイルを, ひとつひとつ真心()込めてスクリプトに食わせてたので
+これを期に自動化の流れが造れるとベター.
+またそこまで行かなくともこれまでに溜め込んだpcapngファイルの再掘り起こしが容易になるので
+それだけでも良い感じです.
+
+
+正直pcapngをこんな感じに触りたい人いない気がするので, 誰にも使ってもらえない感...
+
+
+### 使い方
+
+コンフィグファイルはこんな感じになります.
+いわゆるguessはできないので手打ちで全部書く必要があります.
+
+```
+exec: {}
+in:
+  type: pcapng_files
+  paths: [/Users/enukane/Desktop/emtestpcap/, /tmp]
+  threads: 3
+  schema:
+    - { name: frame.time_epoch, type: long }
+    - { name: frame.len, type: long }
+    - { name: wlan.ta, type: string }
+    - { name: wlan.ra, type: string }
+out: {type: stdout}
+```
+
+- typeにはpcapng_filesを指定します
+- pathsには, 処理したいpcapngファイルが入ったディレクトリを配列で指定します
+- threadsは, 並列度を指定します
+  - 上記paths内で見つかったpcapngファイルたちをこのthreadsの数に分配して並行に処理がなされる, はず
+  - ちゃんと動いてるかは未確認...
+- schemaにはpcapng中の抽出したいフィールド名(name)と変換先の型(type)を指定します
+  - フィールド名は, wireshark/tsharkで -e オプションのfilterとして使っている名前が指定できます
+  - 型は今のところstringかlongのみ
+
+これをpreviewコマンドで指定してみるとこんな感じ
+
+```
+enukane@glenda-lairなう（´・ω・｀）つ ~/Sources/embulk-test % java -jar embulk.jar preview config.yml
++-------------------------------------------------+-----------------------+----------------+-------------------+-------------------+
+|                                     path:string | frame.time_epoch:long | frame.len:long |    wlan.ta:string |    wlan.ra:string |
++-------------------------------------------------+-----------------------+----------------+-------------------+-------------------+
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             45 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             39 |                   | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             57 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             45 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             39 |                   | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |            146 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             57 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |            151 | c4:7d:4f:56:e5:1c | 33:33:00:01:00:03 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |            131 | c4:7d:4f:56:e5:1c | 01:00:5e:00:00:fc |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |            283 | c4:7d:4f:56:e5:18 | ff:ff:ff:ff:ff:ff |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             45 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             39 |                   | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |            146 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test1.pcapng |         1,413,615,217 |             57 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             45 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             39 |                   | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             57 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             45 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             39 |                   | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |            146 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             57 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |            151 | c4:7d:4f:56:e5:1c | 33:33:00:01:00:03 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |            131 | c4:7d:4f:56:e5:1c | 01:00:5e:00:00:fc |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |            283 | c4:7d:4f:56:e5:18 | ff:ff:ff:ff:ff:ff |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             45 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             39 |                   | c4:7d:4f:56:e5:19 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |            146 | c4:7d:4f:56:e5:19 | 20:c9:d0:d8:37:31 |
+| /Users/enukane/Desktop/emtestpcap//test2.pcapng |         1,413,615,217 |             57 | 20:c9:d0:d8:37:31 | c4:7d:4f:56:e5:19 |
++-------------------------------------------------+-----------------------+----------------+-------------------+-------------------+
+```
+
+- previewでは部分的なタスクしか実行されません (ここではtask5.pcapngがぬけている)
+  - runコマンドで出力される, "次の状態のコンフィグ"も出力されません
+- ただし上記のように良い感じに表っぽい出力がなされます
+
+
+実際にrunコマンドで走らせると以下の様になります
+
+```
+enukane@glenda-lairなう（´・ω・｀）つ ~/Sources/embulk-test % java -jar embulk.jar run config.yml -o config.yml
+2015-01-29 11:29:44,264 [INFO]: main:org.embulk.exec.LocalExecutor: Running 3 tasks using 8 local threads
+2015-01-29 11:29:44,265 [INFO]: main:org.embulk.exec.LocalExecutor: {done:  0 / 3, running: 0}
+/Users/enukane/Desktop/emtestpcap//test5.pcapng,1413615217,45,28:cf:e9:4d:bb:91,c4:7d:4f:56:e5:1d
+/Users/enukane/Desktop/emtestpcap//test5.pcapng,1413615217,39,,28:cf:e9:4d:bb:91
+/Users/enukane/Desktop/emtestpcap//test5.pcapng,1413615217,155,28:cf:e9:4d:bb:91,c4:7d:4f:56:e5:1d
+(中略)
+/Users/enukane/Desktop/emtestpcap//test1.pcapng,1413615217,283,c4:7d:4f:56:e5:18,ff:ff:ff:ff:ff:ff
+/Users/enukane/Desktop/emtestpcap//test1.pcapng,1413615217,146,c4:7d:4f:56:e5:19,20:c9:d0:d8:37:31
+/Users/enukane/Desktop/emtestpcap//test1.pcapng,1413615217,57,20:c9:d0:d8:37:31,c4:7d:4f:56:e5:19
+/Users/enukane/Desktop/emtestpcap//test2.pcapng,1413615217,45,c4:7d:4f:56:e5:19,20:c9:d0:d8:37:31
+/Users/enukane/Desktop/emtestpcap//test2.pcapng,1413615217,39,,c4:7d:4f:56:e5:19
+(中略)
+2015-01-29 11:29:47,517 [INFO]: main:org.embulk.exec.LocalExecutor: {done:  3 / 3, running: 0}
+2015-01-29 11:29:47,517 [INFO]: main:org.embulk.exec.LocalExecutor: {done:  3 / 3, running: 0}
+2015-01-29 11:29:47,517 [INFO]: main:org.embulk.exec.LocalExecutor: {done:  3 / 3, running: 0}
+2015-01-29 11:29:47,535 [INFO]: main:org.embulk.command.Runner: next config: {"type":"pcapng_files","paths":["/Users/enukane/Desktop/emtestpcap/","/tmp"],"threads":3,"schema":[{"name":"frame.time_epoch","type":"long"},{"name":"frame.len","type":"long"},{"name":"wlan.ta","
+type":"string"},{"name":"wlan.ra","type":"string"}],"done":["/Users/enukane/Desktop/emtestpcap//test1.pcapng","/Users/enukane/Desktop/emtestpcap//test2.pcapng","/Users/enukane/Desktop/emtestpcap//test5.pcapng"]}
+```
+
+- -oオプションで実行中のコンフィグと同じパスを指定してやると, 元のコンフィグに「今処理したファイルリスト」を付け加えます
+  - 既にdoneが合った場合とか考慮してない等々で今はきちんと動いてない模様... (to be fixed)
+  - いわゆるcommit reportとして, 次回に重複処理しないように考慮 (したかった)
+- outがstdoutになっているので, previewの様な表ではなくcsv形式で出力.
+
+
+
+
+### embulk弄ってたときのメモ
+
+- embulkの[README](https://github.com/embulk/embulk)をよめばだいたいどうにかなる。
+- bundleコマンドで作成したディレクトリ以下でプラグインの新規追加・名前変更等したときは, 再度bundleコマンド発行すること
+- 本来的にはinputプラグインではなくFile input内のparser/decoderプラグインとして造るべきでは？
+  - 処理対象のファイル一覧→スレッドへの分配あたりを再開発してる感
+  - input/output以外のプラグインがどの程度rubyで差し込みできるのかよく見えない. 要調査.
+    - file inputのメインのロジックはJava側で書かれてるようなのでbundle側からのインタラクション次第か?
+- task to threadsのベストプラクティスが欲しい...
+- transactionとrunの間のデータ受け渡し, これでいいのかな感
+  - 引数でスレッドローカルなオブジェクト渡すものだと思ってたけど...
+
+

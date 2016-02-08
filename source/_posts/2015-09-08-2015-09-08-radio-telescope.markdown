@@ -1,0 +1,58 @@
+---
+layout: post
+title:  DIY電波望遠鏡 - 部材検討
+date: 2015-09-08 21:36:21 +0900
+comments: true
+categories: 
+- tech
+- radio
+---
+
+HackRF の遊び方を広げるための一手段として電波望遠鏡の実装に使えないかを考えてみる.
+
+## 参考
+
+- [マイ・電波望遠鏡とExcelで電波地図を作る](http://www.asj.or.jp/geppou/archive_open/2012_105_10/105_631.pdf)
+- [宇宙の電波をキャッチしてみよう](https://www.jarl.org/Japanese/1_Tanoshimo/1-3_Ham-Fair/2010/radio-observation.pdf)
+- [BSアンテナ電波望遠鏡で 7/22 部分日食を観察しよう](http://tenkyo.net/kaiho/pdf/2009_05/2009-05-03.pdf)
+- [ＢＳアンテナを用いた電波望遠鏡の教育利用](http://www.nhao.jp/research/annual_report/docs/ar2011-2.pdf)
+- [簡単なアンテナによる銀河電波の測定](http://ir.lib.osaka-kyoiku.ac.jp/dspace/bitstream/123456789/5789/1/KJ382300123.pdf)
+- [簡単な電波望遠鏡による低周波電波天文学](http://www.asj.or.jp/geppou/archive_open/1989/pdf/19890707.pdf)
+- [私の電波望遠鏡 - II](http://www.asj.or.jp/geppou/archive_open/1993/pdf/19930402c.pdf)
+- [RTL-SDR FOR BUDGET RADIO ASTRONOMY](http://www.rtl-sdr.com/tag/simple_ra/)
+- [Experiments with a Software Defined Radio Telescope](http://www.britastro.org/radio/projects/An_SDR_Radio_Telescope.pdf)
+
+## 構成
+
+![2015-09-08-diy-rt](/images/2015-09-08/plan-diy-radio-telescope.png)
+
+- SDRデバイスはRaspiで操作
+- [simple\_ra](https://github.com/patchvonbraun/simple_ra)を利用して観測・記録
+  - 場合によっては改造すること
+  - 要ソース読み
+
+## 必要な物品
+
+### 既に持っているもの
+
+|部材|品目|値段|個数|用途|備考|
+|:--:|:--:|---:|:--:|:---|:---|
+|SDRデバイス| DVB-T+DAB+FM USB チューナ| 1,420 | 1 | SDR用 | BNC端子へのアダプタ必要, できればこっちを使う |
+|| HackRF One | $300.00 | 1 | SDR用 | |
+|BNC-SMA コネクタ | ??? | ??? | 1 | DVB-T用 | |
+|同軸ケーブル(SMA) | ??? | ??? | 2 | SDRデバイスへの接続用 | |
+
+### 買うべき物
+
+|部材|品目(候補)|値段|個数|用途|備考|
+|:--:|:--:|---:|:--:|:---|:---|
+| BS/CSアンテナ | [東芝 BCA-453A](http://www.amazon.co.jp/dp/B00XZX39EI) | 4,580 | 1 | 受信用 | 周波数範囲(11.7〜12.75GHz), ビックカメラの方が[安いかも](http://www.biccamera.com/bc/disp/CSfGoodsPage_001.jsp?GOODS_NO=3118307) |
+| アンテナ取り付け金具 | [DXアンテナ VM321H](http://www.amazon.co.jp/dp/B006ZCFGH4) | 3,730 (送料込み) | 1 | ベランダ取り付け用 | 9cm幅, 7cm下がる様な金具 |
+| BS/CS ブースタ | [日本アンテナ CSB-C25-SP](http://www.amazon.co.jp/dp/B000TW9D66) | 2,370 | 1 | アンプ用 | 電源供給が必要, 場合に依っては電源付きのブースタの方がいいかも |
+| パワーインサータ | [プレクス PX-LNBADAPTOR](http://www.amazon.co.jp/dp/B008R6A3QK) | 1,980 | 1 | アンテナへの電源供給(ラインブースタの場合) | 分配器が必要 |
+| 分配器 | [HORIC BCUV-971](http://www.amazon.co.jp/dp/B003WSYUNK) | 880 | 1 | パワーインサータと入出力の結合 | 40cmのケーブル x 2が付属 |
+| すき間ケーブル(F形) | [SOLIDCABLE #3232E/0.3](http://www.amazon.co.jp/dp/B005025U0I) | 1080 | 1 | 窓通す用 | 30cm |
+| 同軸ケーブル(F形) | [S-4C-FB](http://www.amazon.co.jp/dp/B00IJ2H1Z8) | 570 | 2 | 外用 + 中用 | 1.5m |
+| F-SMA変換アダプタ | [F-SMAP 変換アダプタ](http://www.amazon.co.jp/dp/B0057STB8W) | 563 | 1 | SMA同軸ケーブルへの接続用 | SMAJ-SMAJが必要 |
+
+合計 17000円弱?

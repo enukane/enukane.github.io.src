@@ -1,0 +1,15 @@
+---
+layout: post
+title: "Chokaigi 2015 Wi-Fiみてきた"
+date: 2015-04-28 17:31:09 +0900
+comments: true
+categories: 
+  - tech
+  - 802.11
+---
+
+ニコニコ超会議2015で Free Wi-Fi が提供されている、とのことだったので
+どんな感じなのか偵察に行くついでにいつもの如くパケットあつめて
+データをまとめてみた.
+
+{% slideshare 47427093 %}

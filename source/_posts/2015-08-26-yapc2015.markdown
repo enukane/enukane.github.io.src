@@ -1,0 +1,83 @@
+---
+layout: post
+title: "YAPC2015 に CONBU プロジェクトメンバとして参加してきました"
+date: 2015-08-26 13:57:56 +0900
+comments: true
+categories: 
+- tech
+- report
+---
+
+掲題の通り YAPC::Asia Tokyo 2015 に CONBU スタッフ (いわゆる Wi-Fi 班)として参加してきました.
+今年で最後の yapcasia だそうですが, 今回が初参加なので最初で最後になってしまいました.
+なおずっとpingの結果と, スペアナの画面だけ見ていたので内容まできちんと聞き入ってたセッションがありません....
+
+CONBUの華々しい活動については, 以下をご覧頂くと良いかと思います.
+
+- [YAPC::Asia Tokyo2015 の会場ネットワークをCONBUが構築しました](http://tsuchinoko.dmmlabs.com/?p=2122)
+- [CONBUの記録 (YAPC::Asia Tokyo 2015編)](http://togetter.com/li/864607)
+
+
+### 感想
+
+正直なところ, ネットワーク周りに首ったけになっていた結果 Perl のカンファレンスに参加したというよりお祭りに参加してネットワーク敷設のお手伝いしてきた, という印象の方が強かったです. Perl は10年ぐらいまえに CGI で遊んでた頃に書いたっきり全く触ってなかったので perl mongers に取り囲まれてぼっこぼこにされるんじゃないかと震えてたのですが, ruby やら go やら思ったより多様性に溢れていたのが印象的でした. なおちらっと Larry Wall の実物は見ることができました.
+
+### YAPCらしきことをつぶやいてたログ
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr">なおこんな感じのアロハ <a href="http://t.co/f1VfP6BJZW">pic.twitter.com/f1VfP6BJZW</a></p>&mdash; えぬかね@C88ありがとうございました (@n_kane) <a href="https://twitter.com/n_kane/status/634266022900400128">2015, 8月 20</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr">コミケ6日目 (@ 東京国際展示場 (東京ビッグサイト/Tokyo Big Sight) - <a href="https://twitter.com/T_Bigsight">@t_bigsight</a> in Koto, 東京都) <a href="https://t.co/9s894TJKVj">https://t.co/9s894TJKVj</a> <a href="http://t.co/lHRKGaVziW">pic.twitter.com/lHRKGaVziW</a></p>&mdash; えぬかね@C88ありがとうございました (@n_kane) <a href="https://twitter.com/n_kane/status/634876158719361024">2015, 8月 21</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+どこまでベラベラしゃべって良いのか判断ついてなかったので, あんまりないね...
+
+### 聞いてたセッション
+
+かろうじて片耳で聞いてたセッションの一覧はこんな感じ
+
+- [TBD](http://yapcasia.org/2015/talk/show/cc0ec485-1879-11e5-aca1-525412004261) by Matz
+  - streemのお話からセッションに潜入. 
+- [うっかりをなくす技術](http://yapcasia.org/2015/talk/show/523b9508-0d77-11e5-8174-67dc7d574c3a) by karupanerura
+- [Discover the Microsoft Azure ](http://yapcasia.org/2015/talk/show/39a15ad4-0ff5-11e5-a984-d7f07d574c3a) by Tatsuro Hisamori
+  - [1日140円から始めるIoTデータ分析・可視化](https://docs.com/hisamori-tatsur/1104) はちょっと読んでおきたい
+- [データ分析基盤を支える技術](http://yapcasia.org/2015/talk/show/dd8ce20e-fad2-11e4-b6e7-8ab37d574c3a)  by repeatedly
+  - ちょうど後述する「パケット集め」で集めたデータどうするかーという段階だったので一番気になるセッションではありました
+- [カンファレンスネットワークの作り方](http://yapcasia.org/2015/talk/show/81342dae-1351-11e5-ab94-d9f87d574c3a) by CONBU
+  - みんな聞きにきたよね?
+
+Wi-Fi的にはD, Eが激戦区だったのでそのあたりには居たのですがセッションの内容まで覚えてるのはこの辺りの模様...
+
+### なぜか CONBU は LT で設営デモもやりました
+
+どこかに映ってる, ヒゲダルマを探そう.
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr">CONBUの設営、すばらしい！ <a href="https://twitter.com/hashtag/yapcasia?src=hash">#yapcasia</a> <a href="http://t.co/NNn4sRdc4a">pic.twitter.com/NNn4sRdc4a</a></p>&mdash; 馮　富久/FUON Tomihisa (@tomihisa) <a href="https://twitter.com/tomihisa/status/635003905504481280">2015, 8月 22</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr">突然目の前に無線APが生えてきた <a href="https://twitter.com/hashtag/yapcasia?src=hash">#yapcasia</a> <a href="http://t.co/UWcSzvRv08">pic.twitter.com/UWcSzvRv08</a></p>&mdash; ぷりんたいは求職中です、 (@spacepro_be) <a href="https://twitter.com/spacepro_be/status/635004222291902464">2015, 8月 22</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr"><a href="https://twitter.com/n_kane">@n_kane</a> <a href="https://twitter.com/kichi_robo">@kichi_robo</a> 未公開シーンです、ご査収ください <a href="http://t.co/mcF5xBafUJ">pic.twitter.com/mcF5xBafUJ</a></p>&mdash; ぷりんたいは求職中です、 (@spacepro_be) <a href="https://twitter.com/spacepro_be/status/635038626984816640">2015, 8月 22</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+### パケット集め
+
+一週間前にあったコミケでも持ち込んだ下記のデバイスを YAPC でも持ち込んで, バッグのなかに入れつつうろうろしてました.
+(下記はコミケの時の写真)
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr">あとスペースの裏側で、今日も今日とて無線LAN(802.11)のパケットキャプチャしてます。今回書きたかった&amp;次回書きたい、キャプチャデバイス→embulk→DB→解析系の一連の流れ、に食わせる最初の一歩の子になります。 <a href="http://t.co/TeMvyv3whl">pic.twitter.com/TeMvyv3whl</a></p>&mdash; えぬかね@C88ありがとうございました (@n_kane) <a href="https://twitter.com/n_kane/status/632757086124838912">2015, 8月 16</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+最終的に, 単純なpcapngのデータサイズとしては 3GBほど, フレーム数にして 10M フレーム, となかなか良い感じにあつまりました.
+会場Wi-Fi, 日中は定常的に 100Mbps ほど出ていたとのことでフレーム飛び交いまくってたはずなのでやっぱり集まりが良いようです.
+
+<blockquote class="twitter-tweet" lang="ja"><p lang="ja" dir="ltr">朝方postgreにぶち込み終わってたはずのC88とYAPC2015で集めたフレームたちのヘッダデータ、良い感じの分量だ。さすがにYAPCでは通信が盛んだったのか二日分の割にコミケのそれより倍多い。 <a href="http://t.co/9wvHk3nrDV">pic.twitter.com/9wvHk3nrDV</a></p>&mdash; えぬかね@C88ありがとうございました (@n_kane) <a href="https://twitter.com/n_kane/status/636094941878292480">2015, 8月 25</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+### 終わりに
+
+最初で最後の YAPC::Asia Tokyo にネットワークスタッフとして参加, そしてそっちに夢中になっててあんまり本編を聞いていないとかどういうこっちゃという感じではありますが, それはそうとしてそれなりに楽しまさせていただきました. 関係者の皆様ありがとうございました.

@@ -1,0 +1,108 @@
+---
+layout: post
+title: "2015-02-12 DS-Liteいれてみた"
+date: 2015-02-12 23:50:42 +0900
+comments: true
+categories: 
+- memo
+- tech
+- network
+---
+
+## 追記
+
+- 2015/02/13 「速度計測その2」を追加
+- 2015/02/16 「速度計測その3」を追加
+
+## はじめに
+新居でのフレッツv6オプションおよび IIJmio FiberAccess/NF の準備ができたので
+[DS-Lite](https://www.iijmio.jp/guide/outline/ipv6/ipv6_access/dslite/)で
+IPv4での疎通性を確保してみた.
+が, ちょいと速度面で問題?があったのでメモ.
+
+## 設定
+
+設定は以下を参照. フィルタ周りの設定やIPv4 PPPoe周りを継ぎ足してほぼそのままで導入.
+
+- [SEIL/x86でDS-Lite](http://www.seil.jp/blog/ds-lite)
+
+## 動作確認
+
+tracerouteを取ってみるとこんな感じに transix.jp を通って
+IPv4インターネットに出て行けてることが確認できたら完了.
+![traceroute-dslite](/images/traceroute-dslite.png)
+
+なお普通にIPv4 PPPoE経由でいくとこんな感じになる.
+![traceroute-iijmio](/images/traceroute-iijmio.png)
+
+## 速度計測
+
+問題は速度で, 以下の様な三者間で速度を測ってみるとどうにも DS-Lite 経由の iperf の結果が芳しくない.
+
+![dslitevspppoe](/images/dslitevspppoe.png)
+
+|経由       |ISPまたは事業者    |対戦表|速度(Mbps)|備考             |
+|:----------|:------------------|:----:|---------:|:----------------|
+|???        | sakura internet?  |1     |87.2      |VPS側の速度計測用|
+|DS-Lite    | Multifeed(transix)|2     |46.5      |                 |
+|DS-Lite    | Multifeed(transix)|3     |43.5      |                 |
+|IPv4 PPPoE | IIJmio            |2     |87.9      |                 |
+|IPv4 PPPoE | IIJmio            |3     |73.7      |                 |
+|IPv4 PPPoE | Interlink         |2     |88.6      |                 |
+|IPv4 PPPoE | Interlink         |3     |69.4      |                 |
+
+- なお上流はフレッツ光マンションタイプ・ミニ(VDSL方式)なので,最大100Mbps
+- ルータにはSEIL/X1を利用
+- 常にsakura VPS側がiperf server
+  - 1の場合は, 東京第二側をserverに
+- めんどうなので一発勝負. 5回平均や最大値採取はせず
+
+おおよそIIJmio側もInterlink側も70〜80Mbps程度は出ているように見受けられる.
+一方, DS-Liteを通すとなぜか40〜50Mbpsに下がる模様.
+
+さて, なんででしょう.
+
+## 速度計測その2
+
+上記速度計測では, LAN内からはiperf clientとしてしか通信していなかったので,
+ここではiperf3 (ver 3.0.11)のReverseモードを使って, 上り下り両方を測ってみる.
+なお, 上記速度計測とは以下の違いがある.
+
+- 今度は MacBookAir + Thunderbolt Ethernet Adapterをiperf clientとして利用
+  - 若干速くなってる
+- IIJmioとinterlinkには速度差はあまりないのでinterlink側経由の速度は省略
+
+|経由       |ISPまたは事業者    |対戦表|向き      |速度(Mbps): sender|速度(Mbps): receiver|
+|:----------|:------------------|:----:|:--------:|-----------------:|-------------------:|
+|DS-Lite    | Multifeed(transix)|2     | UP       |**51.5**          |**51.2**            |
+|DS-Lite    | Multifeed(transix)|2     | DOWN     |90.4              |89.9                |
+|DS-Lite    | Multifeed(transix)|3     | UP       |**53.5**          |**53.1**            |
+|DS-Lite    | Multifeed(transix)|3     | DOWN     |90.9              |90.4                |
+|IPv4 PPPoE | IIJmio            |2     | UP       |93.8              |93.8                |
+|IPv4 PPPoE | IIJmio            |2     | DOWN     |94.1              |93.4                |
+|IPv4 PPPoE | IIJmio            |3     | UP       |87.3              |86.3                |
+|IPv4 PPPoE | IIJmio            |3     | DOWN     |88.6              |87.5                |
+
+- iperf3はクライアント側からサーバ側に向けてトラフィックを出す
+- "-R"オプションで逆方向になる
+- このため, "-R"なしがUP, "-R"ありがDOWN
+
+DS-LiteのUP方向が妙に抑えられているようだ. DOWN方向は普通に速度が出ている.
+
+## 速度計測その3
+
+"option ipv6 avoid-path-mtu-discovery on|off"を切り替えてみる.
+対戦表は2のみ.
+
+|経由       |ISPまたは事業者    |avoid-path-mtu-discovery|向き      |速度(Mbps): sender|速度(Mbps): receiver|
+|:----------|:------------------|:----------------------:|:--------:|-----------------:|-------------------:|
+|DS-Lite    | Multifeed(transix)|default                 | UP       |**50.4**          |**50.2**            |
+|DS-Lite    | Multifeed(transix)|default                 | DOWN     |90.2              |89.8                |
+|DS-Lite    | Multifeed(transix)|off                     | UP       |**75.0**          |**74.9**            |
+|DS-Lite    | Multifeed(transix)|off                     | DOWN     |90.5              |90.0                |
+|DS-Lite    | Multifeed(transix)|on                      | UP       |**52.0**          |**51.7**            |
+|DS-Lite    | Multifeed(transix)|on                      | DOWN     |90.7              |90.4                |
+|IPv4 PPPoE | IIJmio            |X                       | UP       |93.7              |93.7                |
+|IPv4 PPPoE | IIJmio            |X                       | DOWN     |93.4              |92.5                |
+
+offにすると少し良くなるようだ.
