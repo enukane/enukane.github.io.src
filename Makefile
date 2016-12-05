@@ -8,7 +8,7 @@ generate:
 	bundle exec rake generate
 
 preview:
-	bundle exec rake generate & bundle exec rake preview
+	bundle exec rake generate && bundle exec rake preview
 
 deploy:
-	bundle exec rake generate & bundle exec rake deploy
+	bundle exec rake generate && bundle exec rake deploy
