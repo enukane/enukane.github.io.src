@@ -1,0 +1,387 @@
+---
+layout: post
+title: "2017-01-11 コミケ91で、ハニーポット無線LANアクセスポイント立てたお話"
+date: 2017-01-11 09:35:12 +0900
+comments: true
+categories: 
+  - tech
+  - 802.11
+---
+
+{:TOC}
+
+# 概要
+
+今冬のコミックマーケット91にて、1日目 西1 み-18a "glenda9" で出展するにあたって
+自スペースにハニーポット無線LANアクセスポイント(以下 ハニポAP)を立てました。
+ここではその提供方法、構成および結果について記述します。
+
+
+この手のイベントでは「応仁のLAN」といった面白SSIDを告知する遊びをする人がいます。
+これに倣って自分のスペース名をSSIDで告知というのも可能ですが、
+せっかくAPを立てるからにはもうすこし遊びを入れたいところです。
+
+
+もうちょっと真面目な目的としては各種プラットフォームが備えているキャプティブポータル検知の実装を見てみたい、
+この手のイベントでいかにもセキュリティの甘そうなAPをおいておくと
+どれくらいの人が引っかかるのか見てみたいといったモチベーションがありました。
+
+ここではAPとキャプティブポータルを組み合わせてイベント環境にデプロイし、
+クライアントの通信を特定コンテンツにねじ曲げて以下の様なページを強制表示するようにしつつ各種ログを収集しました。
+
+{% img center /images/2017-01-11/captive-webui.png 350 %}
+
+<!---
+# 目的
+
+- APを用いた宣伝、お客さんを釣る
+- どれくらいの人がハニポAPに引っかかるかをみる
+- キャプティブポータル検知の仕組みを実際に引っかけて調べる
+
+先にも述べたように単純にSSIDを「み-18a glenda9」などとして宣伝する方法もあります。
+が、一般的なハニーポットとしては"Free Wi-Fi"といったそれらしいSSIDをつけておきたいところです。
+威力業務妨害扱いにもなりそうなので、今回はやりませんでしたが他のFree Wi-Fiで用いている
+SSIDをつけるという案もあります。
+コミケの環境では、PCというよりスマホ・タブレットが主として用いられると思われ
+またさらにいえばWi-Fiよりは3G/LTEを用いるであろうと思われるためあまり引っかかる人はいなさそうです。
+しかし、無線LANがデフォルト有効かつ暗号化なしSSIDに自動的に接続しに行くデバイスや、
+テザリング接続時にたまたまフリーっぽいSSIDを見つけて手動接続するユーザはいると思われます。
+これらをターゲットとしてSSIDを告知します。
+
+各種プラットフォームではそれぞれ [HOW AUTOMATIC DETECTION OF CAPTIVE PORTAL WORKS](https://success.tanaza.com/s/article/How-Automatic-Detection-of-Captive-Portal-works)にあるようなキャプティブポータル検知の仕組みを導入しています。
+これを実際に調べるとともに、この際に発生する接続からアドレス取得、名前解決からHTTPアクセスまでの
+一連の流れから読み取れることを探ってみます。
+
+-->
+
+# ハニーポットAPの見え方
+
+ハニポAPのSSIDとして「  Not Free Wi-Fi」を告知するようにしました。
+SSIDの先頭に半角スペースを2つ入れることで、
+「0000」で始まるものやアンダースコアから始まるSSIDよりも上位に出現するようにしています。
+2.4GHz帯と5GHz帯でSSIDを分けており、
+下記の様に2.4GHz帯側には"-g"とのサフィクスをつけました。
+
+{% img center /images/2017-01-11/not-free-wifi-ssid_hide.png 300 %}
+<!--- 引っかかると --->
+
+このSSIDに接続すると、
+大抵のプラットフォームに入っているキャプティブポータル検知の仕組みによりスプラッシュページが表示されます。
+Androidのスマホで見ると、ハニーポットAPのSSIDを選択後しばらくすると以下の画面がポップアップします。
+
+{% img center /images/2017-01-11/sp-captive.jpg 300 %}
+
+# ハニーポットAPの機材について
+
+## AP本体
+
+ハニーポットAPには、Buffalo WZR-HP-AG300H に OpenWRT を載せたものを用いました。
+
+{% img center /images/2017-01-11/hap.png 300 %}
+
+C90で同様の試みをしたときは Raspberry Pi と USB Wi-Fi アダプタを用いていました(以下)。
+その際は、混雑している2.4GHz帯でしか運用せず出力も弱めであったため、
+あまり接続数を稼げませんでした。
+
+{% img center /images/2017-01-11/old-hap.png 300 %}
+
+WZR-HP-AG300H は家庭用APとしてそれなりにきちんとしたアンテナを備え、
+2.4GHz/5GHz帯の同時運用も可能です。
+OpenWRT を導入できカスタマイズ性も高いため今回はこれを用いてハニーポットAPを実装しました。
+
+
+## APへの電源供給
+
+WZR-HP-AG300Hの消費電力は最大13.2Wであり、付属のACアダプタは定格 12V/2.0A となっています。
+通常のUSBモバイルバッテリーではここまでの電圧は出せないため、
+簡単にやるにはACが取れる電源などの大きめのバッテリーを用意する必要があります。
+これらは価格も高い上にでかいし重いしで大変に邪魔なので、
+ここでは以下のページに従ってQuickCharge 2.0対応のバッテリー(今回は AUKEY PB-T4 を利用)から12Vを引き出すようにしました。
+
+- [Quick Charge 2.0 電源から 12V とる](https://lowreal.net/2015/12/07/3)
+
+なお上記ページのコードでは上手く動かなかったため、
+挿入するディレイの長さを変更して運用しています。コードは下記をご参照ください。
+
+- https://gist.github.com/enukane/26f3af8938ed2a775296f472b1c71168
+
+後述するとおり 10000mAh のバッテリーで6時間程度は運用できました。
+基板に起こすのは間に合わなかったので Arduino そのままとブレッドボードで動かしていました。
+たまに結線が外れてリブートしてたり。。。。
+
+{% img center /images/2017-01-11/hap-power.jpg 350 %}
+
+## 簡易キャプティブポータル on OpenWRT
+
+簡易キャプティブポータル実現のため、以下の細工を入れています。
+
+- 管理用WebUIはWAN側インタフェースでのみ受付
+- LAN から WAN への通信を全て遮断
+- DHCPで配布するDNSサーバを自身(10.0.0.1)に設定
+- DNSサーバにて全てのAレコードのクエリに対して自身のアドレスで応答
+- LAN側(キャプティブポータル提供側)では Apache で HTTP アクセスを待ち受け
+  - 全てのHTTPアクセスを /index.html に置き換え
+
+
+dnsmasqのレコード上書き機能を用いて全てのホスト名に対して自分のアドレスを返すことで、
+アクセスを自身にねじ曲げます。
+現状 /etc/init.d/dnsmasq にて dnsmasq コマンドの引数に以下を
+加えてこれを実現しています。本来的には /etc/config/dhcp に list address の
+行を追加すれば動くはずですが、上手く動作しないようでした。
+
+```
+--address='/#/10.0.0.1'
+```
+
+キャプティブポータルとして HTTP アクセスを受け付ける側には Apache を用います。
+上記 DNS の細工により、HTTP アクセスはこちらに向きますがパスは不定のためリダイレクト等が必要です。
+OpenWRT デフォルトの apache では mod\_rewrite が使えないため、
+AliasMatch でこれを実現します。
+
+
+```
+AliasMatch ^/.+$ /root/www/index.html
+<Directory "/root/www">
+	Options Indexes FollowSymLinks SymLinksIfOwnerMatch
+	AllowOverride None
+	Order allow,deny
+	Allow from all
+</Directory>
+```
+
+これにより全てのHTTP アクセスに対して /index.html の中見を返すようになります。
+このHTMLファイル中に、先に挙げたWebページを詰め込んでおきます。
+
+## 設置場所
+
+ハニーポットAP は コミックマーケット91 1日目 (2016/12/29) の西ホール1、
+み-18a の机の上に設置しました。西ホールのだいたい赤丸の位置に自スペースがあります。
+
+{% img center /images/2017-01-11/map.png 200 %}
+
+{% img /images/2017-01-11/my-space_cap.png %}
+
+机の上の可能な限り高いところに、
+設置しましたができればポスタースタンドなどにくくりつけてより高さを稼ぎたいところではあります。
+
+
+# 提供結果
+
+ハニーポットAPの提供は 12/29 09:05:29 から 15:09:15 までの期間、6時間3分46秒に渡って実施しました。
+
+## 無線LAN
+
+接続しにきたユニーククライアント数は 62 台でした。
+この値は、ログ中の接続(Authentication)イベントに紐付くMACアドレスのユニークアドレス数を計上したものです。
+なお、いくつかの端末は Authentication Response に対してACKを返せていないため実際にAssociationまで至ったクライアントは 
+56 台です。
+
+
+MACアドレスのOUIからベンダ名を引き、分布を図示した物が以下になります。
+全体でベンダは10種類でした。コミケという利用環境上、大半がスマートフォンであると推測できます。
+この中でも大半が Apple (おそらくiPhone/iPad) と Huawei で占められています。
+"IEEE Registration Authority"という名前になっているものがありますが、
+一部のスマホでは自社のベンダ名を登録していないためこうなっているようです。
+
+![sta-oui-histogram](/images/2017-01-11/sta_oui_histogram.png)
+
+
+ハニーポットAPでは2.4/5GHz帯でそれぞれ別のSSIDを告知しています。
+以下は帯域毎のユニーク接続クライアント数の分布です。
+2.4GHz帯は18端末、5GHz帯は42端末と後者に寄っています。
+接続イベント数上も2.4GHz帯は 33回、5GHz帯は 63回となっており、
+5GHz帯側に接続しにくることが多かったようです。
+
+![sta-per-band](/images/2017-01-11/sta_per_band.png)
+
+
+以下は端末の接続持続時間のヒストグラムです。端末が接続してから切断するまでの期間(秒)と発生回数をプロットしています。
+10秒単位で丸めています。大半は1分以内ですが、最長で1030秒(17分程度)の場合もあったようです。
+300秒にて山がありますが、これは5分毎に走るGTKの更新失敗やらのタイムアウトに起因するものと推測しています。
+移動が激しいコミケのような環境では、接続後そのまま明示的に切断せずにクライアントが離脱することが多いため、
+このような傾向があるものと考えています。
+
+![sta-dur-histogram](/images/2017-01-11/sta_dur_histogram.png)
+
+## DHCP
+
+DHCPサーバがアドレスを割り当てた端末は 50 台でした。
+先に述べたとおり、Assocした端末数は56端末であるため6台はDHCPによるアドレス取得まで至らなかったようです。
+
+
+割り当てたアドレスは10.0.0.0/8から 45 アドレス分でした。
+dnsmasqは比較的割り当てアドレスをばらけさせる傾向にありますが、うち5アドレスは重複して配布しています。
+デフォルトでは DHCP Lease Time が 1h であるため再利用されたようです。
+
+
+DHCPクライアントは DHCP Requestのオプションとしてホスト名を付与する場合があります。
+このホスト名のユニーク数は今回 39 種でした。
+ホスト名文字列として何が付与されるかは端末により異なります。
+iOS系だと**〜のiPhone**といった形式、
+androidだと**android-XXXXXXXX**といった乱数要素を含んだ文字列を用いる場合があります。
+詳細は伏せますが、今回は以下の様な文字列が検出されました。
+
+- iPhone/iPod Touchと推測されるもの("iphone", "ipod"が含まれる): 14 個
+- iPadと推測されるもの("ipad"が含まれる): 5 個
+- androidと推測されるもの
+  - "android-XXXXX" の形式: 12 個
+  - 機種名: 4 個
+- 不明(端末を推測可能な文字列を含まない): 4 個
+
+上記に挙げたとおり android にてホスト名に機種名を用いている例が4つありました。
+以下の通り全てHuawei製品であり、このベンダでは一律このポリシーを採っているのかもしれません。
+
+- HUAWEI\_P9
+- HUAWEI\_P9\_lite
+- HUAWEI\_Mate\_9
+- Honor\_8
+
+
+## DNS クエリ
+
+ハニポAPで動作しているDNSサーバでは期間中に合計556回 DNS クエリを受け取っており、
+この対象レコードの内訳は以下の通りです。
+
+- Aレコード: 504回
+- AAAAレコード: 50回
+- PTRレコード: 2回
+
+合計 123 個の名前にたいしてクエリを受信しました。
+以下はその中で回数の多いほうからトップ10をプロットしたグラフです。
+*connectivitycheck.gstatic.com* や *captive.apple.com* 
+のようにキャプティブポータル検知に用いられるホストが多く現れています。
+またプッシュ通知を司るホスト向けの通信が多いことも伺えます。
+
+![query-top10](/images/2017-01-11/query_top10.png)
+
+
+AAAA レコードへのクエリのみを抽出すると、以下の5ホストに対してのクエリを受信していました。
+IPv6はサポートしていないため、一律NODATAを返しています。
+
+- connectivitycheck.gstatic.com
+- clients3.google.com
+- mobile.pipe.aria.microsoft.com
+- a.config.skype.com
+- b.config.skype.com
+
+## キャプティブポータル
+
+名前でねじ曲げられた先のキャプティブポータルに対するアクセスは以下のようになっています。
+
+- HTTPアクセス回数: 246 回
+- HTTPアクセスのユニーク送信元アドレス数: 43 個
+  - うち5つのアドレスは重複割り当ての可能性あり
+- HTTPアクセス対象ホストのユニーク数: 21 ホスト
+  - 先のクエリ対象ホストが123だったのに比べるとだいぶ少なめ
+  - HTTPのみ対象のため？
+
+以下はアクセス数の多いほうから、ホスト名のトップ10をプロットしたグラフです。
+やはりキャプティブポータル検知用ホストへのアクセスが多めです。
+
+![http-host-histogram](/images/2017-01-11/http_host_histogram.png)
+
+
+アクセス数のヒストグラムをURL全体に拡張し、そのトップ10を並べたものを以下に記載します。
+全体では31個のURLに対するアクセスを記録しています。
+
+![http-url-histogram](/images/2017-01-11/http_url_histogram.png)
+
+通常のWebアクセスらしきものや、Simejiの通信なども見えますが
+大多数はキャプティブポータル検知用のURLに対するアクセスです。
+
+- Apple系
+  - http://captive.apple.com/hotspot-detect.html
+  - http://captive.apple.com/XXXXXXXXXX/YYYYYYYYYYY/ZZZZZZZZZZZZZZZZZZZZZ.html
+    - captive.apple.com はどのパスでも固定の応答が返る模様
+- Android系
+  - http://connectivitycheck.gstatic.com/generate\_204
+  - http://clients3.google.com/generate\_204
+  - http://connectivitycheck.android.com/generate\_204
+  - http://10.0.0.1/generate\_204
+
+
+今回検出したアクセス時のUser-Agentは大別すると以下の4種類に分けられそれぞれ一定の役割のもと
+用いられているようです。
+
+- CaptiveNetworkSupport系
+- Dalvik系
+- WebKit系
+- その他
+
+CaptivePortalSupportは主に captive.apple.com 向けの通信に使われていました。
+ただしこれだけ、と言うわけではなく以下の様に CaptiveNetworkSupport系とMozilla系のUser-Agentを交互に利用しているようです。
+
+```
+10.0.0.73 GET /hotspot-detect.html FryingPan.lan captive.apple.com "CaptiveNetworkSupport-325.10.1 wispr" 200
+10.0.0.73 GET /hotspot-detect.html FryingPan.lan captive.apple.com "Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Mobile/13G34" 200
+```
+
+CaptiveNetworkSupportを含むUser-Agent文字列には以下のパターンが存在していました。
+WISPrの仕様上、User-Agent文字列は "WISPR!任意の文字列" ということになっているので
+CaptiveNetworkSupportの文字列の出典および後続する数値列の意味は不明です。
+
+```
+CaptiveNetworkSupport-346 wispr
+CaptiveNetworkSupport-325.10.1 wispr
+CaptiveNetworkSupport-277.10.5 wispr
+CaptiveNetworkSupport-306.20.1 wispr
+```
+
+
+
+Android向けであると推測される connectivitycheck.gstatic.com等へのアクセスは主に Dalvik系 User-Agent から
+なされています。が、Apple系とおなじくMozilla系Uer-Agentでのアクセスも確認されています。
+
+```
+10.0.0.13 GET /generate_204 FryingPan.lan connectivitycheck.gstatic.com "Dalvik/2.1.0 (Linux; U; Android 7.0; Nexus 6 Build/NBD91P)" 200
+10.0.0.13 GET /generate_204 FryingPan.lan connectivitycheck.gstatic.com "Mozilla/5.0 (Linux; Android 7.0; Nexus 6 Build/NBD91P; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/55.0.2883.91 Mobile Safari/537.36" 200
+```
+
+
+<!---
+
+- "KT/6.0.1 An/4.4.2 ko"
+  - アプリ内の広告表示アクセスっぽい
+- なし
+  - simejiっぽい
+- "iPad5,3/9.3.3 (13G34)"
+  - iOSのPush通知関連？
+- "dianxinos-user-agent"
+  - Baidu系っぽい
+- "LINE/2016.1114.1637 CFNetwork/758.5.3 Darwin/15.6.0"
+  - LINE?
+- "DXCoreService"
+- "com.baidujp.Simeji.SimejiKB/243 CFNetwork/758.5.3 Darwin/15.6.0"
+  - Simeji
+- "Alamofire"
+  - Simejiっぽい
+
+--->
+
+# まとめ
+
+- コミケ91 1日目にてハニーポットAPを動かしてみた
+- 62人のお客さんが釣れた
+  - うち43人程度にはキャプティブWebページを見てもらえた模様
+  - 前回 (C90, 10人程度) に比べてだいぶアクセスしてもらえた
+- キャプティブポータル検知をしてるらしい動きが見れた
+  - iphone & android がメイン?
+  - PC系は今回はほぼいないのもあって確認できず
+  - 1台だけ Ubuntu マシンがいたが、キャプティブ検知っぽい動作はしていなかった
+
+# Future Work
+
+お次やるとしたらこう工夫しようというToDoリスト
+
+- DHCP リースタイムの延長
+  - 1日程度の方が良さそう
+- 運用時の可視化方法
+  - 本当は ruby 動かして管理用 WebUI が見れるはずだったけど、上手く動かなかった
+- 自律的な時刻同期
+  - 会期中一回落ちて時刻がおかしくなった
+  - 3G/LTE で NTP ?
+- 電源モジュールの基板化
+  - ブレッドボードはつらい
+- DHCP Fingerprinting で遊びたい
+- 別の場所での運用
+  - PC が多そうな環境で見てみたい
