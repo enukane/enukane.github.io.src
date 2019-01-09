@@ -1,0 +1,65 @@
+---
+layout: post
+title: "2018-08-07 論文100本ノック 5: LAMP: Lightweight and Accurate Malicious Access Points Localization via Channel Phase Information"
+date: 2018-08-07 11:37:25 +0900
+comments: true
+categories: 
+  - 100papers
+  - 802.11
+  - tech
+---
+
+- from: none
+- 著者: Liangyi Gong
+- 所属; Tianjin University of Technology (天津理工大学)
+- 発行年: 2018
+- 学会: The 13th Internatinal Conference on Wireless Algorithms, Systems and Applications ([WASA2018]( http://wasa-conference.org/WASA2018/index.html))
+- どんなもの:
+  - 悪意のあるAPの場所特定をChannel State Informationを使ってコモディティハードウェアで実現
+  - LAMP(Leightweight and Accurate Malicious access Point localization)の提案
+- 先行研究と比べてどこがすごい
+  - RSSI ではなく CSI を利用
+    - indoor multipathの影響を抑える
+  - 単一デバイスによる三角測量
+    - 複数デバイスをばらまくことなく実現
+  - 精度: 方向 5度以内、位置 35cm 以内で特定
+- 技術や手法のキモはどこ？
+  - 要素
+    - Channel Phase Information を取得
+    - 特徴抽出: フィルタでフェーズ情報をサニタイズ
+    - 方向検知
+      - self-adaptive MUSIC (MUltiple SIgnal Classification)アルゴリズムを利用
+    - 三点測量
+  - 特徴抽出
+    - CSIからのフェーズ情報の逆算に Linear Transformation を利用、ランダム誤りを抑制
+    - ノイズ除去にはSavitsky-Golay フィルタを適用
+  - 方向測定
+    - RFオシレータによるCSI中のフェーズオフセットによるエラーを self adaptive MUSICで補正
+  - 方向キャリブレーション
+    - アンテナをチェイン1とチェイン2、チェイン2とチェイン3の組み合わせでグループ化
+  - 位置特定
+    - 1地点で、位置(x1, y1)と方向θ1がわかる
+    - これを複数子(>2)測定して組み合わせ、基本的には2より上の地点数
+- どうやって技術・手法の有効性を検証した？
+  - 壁ありのオフィスフロアにAPをおいて、三点測量を実施
+    - クライアントには Intel Wi-Fi Link 5300を利用 + Linux CSI Tools
+    - モニタモードで5.32GHz帯を見る
+  - 位置特定の精度
+    - 見通し(LOS)ありなら50%は35cm以内の誤差で特定できることを確認
+    - LOSなしでも50%は45cm以内の誤差
+  - 方向の精度
+    - self adaptive MUSICの有効性として 50% 以内は6度以内の誤差であることを確認
+    - 単なるMUSICだと11度
+- 議論はある
+  - self-adaptive MUSICも本研究の貢献ぽいけど理論的背景が述べられていない気がする
+- この中で出てきた次に読むべき論文リスト
+  - 6, 7: プロフェッショナルハードウェアを用いた位置測定
+    - [6]: Shah, S.F.A., Srirangarajan, S., Tewfik, A.H.: Implementation of a directional beacon-based position location algorithm in a signal processing framework. IEEE  Trans. Wirel. Commun. 9(3), 1044–1053 (2010) 
+    - [7] Subramanian, A.P., Deshpande, P., Jie, G., Das, S.R.: Drive-by localization of road-side WiFi networks. In: The Conference on Computer Communications, INFOCOM  2008, pp. 718–725. IEEE (2008) 
+  - 1, 5, 8: RSSIベース
+    - [1]: Adelstein, F., Alla, P., Joyce, R., Iii, G.G.R.: Physically locating wireless intruders. In: Proceedings of the International Conference on Information Technology: Coding and Computing, ITCC, vol. 1, pp. 482–489 (2004) 
+    - [5]: Schweitzer, D., Brown, W., Boleng, J.: Using visualization to locate rogue access points. Consortium for Computing Sciences in Colleges (2007) 
+    - [8]: Yang, Z., Zhou, Z., Liu, Y.: From RSSI to CSI: indoor localization via channel response. ACM Comput. Surv. 46(2), 1–32 (2013) 
+- 所感
+  - 手元にあるデバイスだしやりたいことに一番近いことだったんで、もうすこしこまかい情報を載せてほしい感じ...
+  - self adaptive MUSICとかあまりに説明がなかったけどMUSICはともかくとしてself-adaptiveの方は有名なの？

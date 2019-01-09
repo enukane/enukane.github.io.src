@@ -1,0 +1,54 @@
+---
+layout: post
+title: "2018-05-11 論文100本ノック 3: Wireless MAC Processors: Programming MAC Protocols on Commodity Hardware"
+date: 2018-05-11 15:52:29 +0900
+comments: true
+categories: 
+  - 100papers
+  - 802.11
+  - tech
+---
+
+- from: none
+- 著者: I.Tinnirello et al
+- 所属: CNIT U degli Studi di Palermo, U degli Studi di Roma-Tor Vergata, U degli Studi di Brescia
+- 発行年: Mar. 2012
+- 学会: IEEE INFOROM 2012 http://infocom2012.ieee-infocom.org/
+- どんなもの
+  - Wireless MAC Processorsの概念の提唱
+    - MAC(メディアアクセスコントロール)のプログラマビリティ提供のための抽象化
+  - コモディティハードウェア(bcm43xx)での実装
+- 先行研究と比べてどこがすごい
+  - SDRやFPGAベースでは同様の取り組みは存在する
+    - そもそも既存の802.11の機能を達成するハードルが高い
+  - bcm43xx(802.11チップ)、普通のハードウェアでこれを実現した
+    - 802.11ハードウェアに載っている諸機能は部品として再活用
+  - その上にWMPとしての抽象化をAPIで提供
+- 技術や手法のキモはどこ？
+  - OpenFWWF(Open FirmWare for Wi-Fi networks)の成果を活用
+    - コモディティハードウェアにデプロイできるという強み
+    - 著者グループの成果らしい
+  - WMPによる802.11含むMACの抽象化: ステートマシン(イベントと状態)とステートレスなコマンドへの分離
+    - ホスト側にlower MAC部分を持ってくることなく、デバイスのファームウェア上で時間制約の厳しい挙動は簡潔させた
+    - 一方でプログラマビリティは一定のレベルで担保
+- どうやって技術・手法の有効性を検証した？
+  - Piggyback Ackや擬似TDMA、チャネルまたぎのメディアアクセスなどの機能を実現
+    - WMPのアーキテクチャで実装した普通の802.11 DCFに少し変更を加えることでできることを図示
+    - 抽象化の適切さを提示
+  - 実装した機能が時間制約を満たした上で有効に動作できることを例示
+    - 抽象化したオペレーションが802.11の要件を満たせることを提示
+  - これらによりWMPのアーキテクチャの有用性を提示
+- 議論はある？
+  - 性能
+    - 柔軟な機能追加ができること、時間制約の厳しい802.11に適用できることというのを主眼に評価している
+    - このWMPレイヤが入ることによるパフォーマンスオーバーヘッドについてどうなるかは言及がない(特に後述する暗号化周り)
+  - 暗号化へのサポート
+    - 現在のチップにはAESやTKIP, WEPの各種ビット長の暗号化・復号化を行う機能がある
+      - これらを活用するアクションは欲しい
+    - あるいはたとえば既存のOWE(RFC8110 Opportunistic Wireless Encryption)をソフトウェアではなくWMPのような枠組みでサポートすることを考えると何が必要になるだろう？
+- この中ででてきた次に読むべき論文リスト
+  - [15]: M. Newfeld "Soft MAC - Flexible Wireless Research Platgorm" HotNets, Nov.2005
+  - [18]: M.H. Lu "Using commodity hardware platform to develop and evaluate CSMA protocols", ACM WiNTECH 2008
+- 所感
+  - open-ath9k-htc-firmwareで同じようなことができるとおもしろそう
+

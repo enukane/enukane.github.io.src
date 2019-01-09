@@ -5,10 +5,13 @@ page:
 	echo "bundle exec rake new_page[pagename]"
 
 generate:
-	bundle exec rake generate
+	LC_ALL="en_US.UTF-8" LANG="en_US.UTF-8" bundle exec rake generate
 
 preview:
-	bundle exec rake generate && bundle exec rake preview
+	LC_ALL="en_US.UTF-8" LANG="en_US.UTF-8" bundle exec rake generate && bundle exec rake preview
 
 deploy:
-	bundle exec rake generate && bundle exec rake deploy
+	LC_ALL="en_US.UTF-8" LANG="en_US.UTF-8" bundle exec rake generate && bundle exec rake deploy
+
+help:
+	echo post page generate preview deploy
